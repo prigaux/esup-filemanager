@@ -229,6 +229,10 @@ public class CmisAccessImpl extends FsAccess implements DisposableBean {
 		return cmisObject;
 	}
 
+	private boolean isCmisDocument(CmisObject cmisObject) {
+		return BaseTypeId.CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId());
+	}
+
 	@Override
 	public void open(SharedUserPortletParameters userParameters) {
 	
@@ -393,7 +397,11 @@ public class CmisAccessImpl extends FsAccess implements DisposableBean {
 	@Override
 	public boolean remove(String path, SharedUserPortletParameters userParameters) {
 		CmisObject cmisObject = getCmisObject(path, userParameters);
-		cmisObject.delete(true);
+		if (isCmisDocument(cmisObject)) {
+			cmisObject.delete(true);
+		} else {
+			((Folder) cmisObject).deleteTree(true, null, false);
+		}
 		return true;
 	}
 
