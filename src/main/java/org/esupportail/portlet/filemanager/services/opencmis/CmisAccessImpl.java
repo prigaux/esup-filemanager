@@ -57,6 +57,7 @@ import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -365,15 +366,27 @@ public class CmisAccessImpl extends FsAccess implements DisposableBean {
 	@Override
 	public boolean putFile(String dir, String filename, InputStream inputStream, SharedUserPortletParameters userParameters) {
 		Folder targetFolder = (Folder)getCmisObject(dir, userParameters);
-		Map prop = new HashMap();
-		prop.put(PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value());
-		prop.put(PropertyIds.NAME, String.valueOf(filename));
+
 		String mimeType = new MimetypesFileTypeMap().getContentType(filename);
 		ContentStream stream = new ContentStreamImpl(filename, null, mimeType, inputStream);
-		Document document = targetFolder.createDocument(prop, stream, VersioningState.NONE, null, null, null, cmisSession.getDefaultContext());
-		HashMap m = new HashMap();
-        m.put("cmis:name",filename);
-        document.updateProperties(m); 
+
+		try {
+		    CmisObject existingObject = cmisSession.getObjectByPath(targetFolder.getPath() + "/" + filename);
+		    try {
+			((Document) existingObject).checkIn(false, null, stream, null);
+		    } catch (CmisBaseException e) {
+			log.error("CMIS checkIn new version failed", e);
+			return false;
+		    }
+		} catch (CmisObjectNotFoundException e) {
+			Map prop = new HashMap();
+			prop.put(PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value());
+			prop.put(PropertyIds.NAME, String.valueOf(filename));
+			Document document = targetFolder.createDocument(prop, stream, VersioningState.NONE, null, null, null, cmisSession.getDefaultContext());
+			HashMap m = new HashMap();
+			m.put("cmis:name",filename);
+			document.updateProperties(m); 
+		}
 		return true;
 	}
 
