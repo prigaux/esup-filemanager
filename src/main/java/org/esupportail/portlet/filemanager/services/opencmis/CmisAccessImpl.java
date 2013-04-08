@@ -398,9 +398,9 @@ public class CmisAccessImpl extends FsAccess implements DisposableBean {
 	public boolean remove(String path, SharedUserPortletParameters userParameters) {
 		CmisObject cmisObject = getCmisObject(path, userParameters);
 		if (isCmisDocument(cmisObject)) {
-			cmisObject.delete(true);
+			cmisObject.delete(false);
 		} else {
-			((Folder) cmisObject).deleteTree(true, null, false);
+			((Folder) cmisObject).deleteTree(false, null, false);
 		}
 		return true;
 	}
