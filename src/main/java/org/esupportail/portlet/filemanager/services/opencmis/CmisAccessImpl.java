@@ -382,7 +382,7 @@ public class CmisAccessImpl extends FsAccess implements DisposableBean {
 			Map prop = new HashMap();
 			prop.put(PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value());
 			prop.put(PropertyIds.NAME, String.valueOf(filename));
-			Document document = targetFolder.createDocument(prop, stream, VersioningState.NONE, null, null, null, cmisSession.getDefaultContext());
+			Document document = targetFolder.createDocument(prop, stream, VersioningState.MINOR, null, null, null, cmisSession.getDefaultContext());
 			HashMap m = new HashMap();
 			m.put("cmis:name",filename);
 			document.updateProperties(m); 
